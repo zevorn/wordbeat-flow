@@ -1,0 +1,48 @@
+[project]
+name = "wordbeat-flow"
+version = "0.1.0"
+description = "A humanize (hmz) flow for word-synced videos: every visual hit lands on a keyword of the voice-over, measured frame by frame before delivery."
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE", "wordbeat/toolkit/LICENSE-kazi"]
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/zevorn/wordbeat-flow"
+Issues = "https://github.com/zevorn/wordbeat-flow/issues"
+
+[dependency-groups]
+dev = [
+    "hmz @ git+https://github.com/humanfia/humanize",
+    "pytest>=8",
+    "ruff>=0.16.5",
+]
+
+[tool.uv]
+# The flow is a directory hmz imports, not a package anybody installs.
+package = false
+
+[tool.pytest.ini_options]
+addopts = ["--strict-markers", "--strict-config", "-ra"]
+pythonpath = [".", "wordbeat"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+# The scripts adapted from kazi keep kazi's own style.
+extend-exclude = ["wordbeat/toolkit/caption_check.py", "wordbeat/toolkit/doctor.py",
+                  "wordbeat/toolkit/kazi_check.py", "wordbeat/toolkit/lint_script.py",
+                  "wordbeat/toolkit/mix.py", "wordbeat/toolkit/pace.py", "wordbeat/toolkit/polyphone.py",
+                  "wordbeat/toolkit/tempo.py", "wordbeat/toolkit/thin_cues.py", "wordbeat/toolkit/timeline.py",
+                  "wordbeat/toolkit/voice.py", "wordbeat/toolkit/hdr"]
+
+[tool.ruff.format]
+exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["_wordbeat"]
