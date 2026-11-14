@@ -73,6 +73,14 @@ class Config(FlowParams):
     concurrency: int = Field(
         default=4, ge=1, le=16, description="Remotion render concurrency", json_schema_extra=TOOLS
     )
+    harness_retries: int = Field(
+        default=6,
+        ge=0,
+        le=50,
+        description="times a turn is tried again when an agent's CLI fails it, waiting 30 s, then twice as "
+        "long each time, at most 10 minutes",
+        json_schema_extra=TOOLS,
+    )
     heavy_timeout: float = Field(
         default=0, ge=0, description="seconds one heavy job may take; zero for no limit", json_schema_extra=TOOLS
     )

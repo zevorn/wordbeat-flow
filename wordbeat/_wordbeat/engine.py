@@ -1,12 +1,19 @@
+import asyncio
 from typing import Any
 
 from hmz.flows import (
     AskUserHookParams,
     AskUserHookResult,
+    HarnessError,
+    HarnessNotInstalled,
+    HarnessRefused,
+    ModelUnavailable,
     OutworlderAway,
+    SessionError,
     SessionStartHookParams,
     SessionStartHookResult,
     StateNotSerializable,
+    UnsupportedOperation,
 )
 
 from _wordbeat import prompts
@@ -16,6 +23,10 @@ from _wordbeat.project import Project
 from _wordbeat.stages import STAGES, Stage, master, preflight, total
 
 ROLES = ("first_chaser", "second_chaser")
+# Failures that waiting cannot mend: a CLI that is not installed, a model the account cannot run,
+# a refused credential, a session used wrongly.
+FINAL = (HarnessNotInstalled, ModelUnavailable, HarnessRefused, SessionError, UnsupportedOperation)
+RETRY_FIRST, RETRY_MOST = 30, 600
 # Per-stage keys a stage clears when it ends; its kept session and author stay for a return to it.
 PASSING = ("claim", "turns", "ready", "human", "inject", "last")
 
@@ -116,12 +127,28 @@ class Engine:
             images=report.images,
         )
 
+    async def attempt(self, idx: int, session: Any, prompt: str) -> Turn:
+        """One agent's turn, tried again after a wait when its CLI fails it: a provider that drops
+        the connection for a while must not end a run hours long."""
+        for tried in range(self.config.harness_retries + 1):
+            try:
+                return await self.chasers[idx].run(prompt, session=session, env=self.workspace, output_schema=Turn)
+            except FINAL:
+                raise
+            except HarnessError as error:
+                if tried == self.config.harness_retries:
+                    raise
+                wait = min(RETRY_FIRST * 2**tried, RETRY_MOST)
+                print(f"wordbeat · {ROLES[idx]}'s turn failed ({error}); trying again in {wait} s", flush=True)
+                await asyncio.sleep(wait)
+        raise AssertionError("unreachable")
+
     async def take(self, stage: Stage, idx: int, session: Any, prompt: str, report: Report) -> tuple[Report, Turn, bool]:
         """One turn of one agent: what it said, whether it changed the work, and the checks after."""
         s = stage.name
         self.current = ROLES[idx]
         before = await self.project.fingerprint(*stage.watch)
-        turn = await self.chasers[idx].run(prompt, session=session, env=self.workspace, output_schema=Turn)
+        turn = await self.attempt(idx, session, prompt)
         changed = before != await self.project.fingerprint(*stage.watch)
         self.state["turn"] = 1 - idx
         self.state[self.key(s, "turns")] = self.get(self.key(s, "turns"), 0) + 1
