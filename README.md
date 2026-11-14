@@ -13,6 +13,10 @@ itself. You decide at four gates: the script, the voice, a sample, and the finis
 
 - [Background](#background)
 - [Install](#install)
+  - [1. Install hmz](#1-install-hmz)
+  - [2. Sign in to the agents' CLIs](#2-sign-in-to-the-agents-clis)
+  - [3. Install wordbeat](#3-install-wordbeat)
+  - [4. Install what the flow runs](#4-install-what-the-flow-runs)
 - [Usage](#usage)
   - [Roles](#roles)
   - [Stages and gates](#stages-and-gates)
@@ -48,16 +52,48 @@ wordbeat is adapted from [kazi](https://github.com/syydaniel/kazi) by syydaniel.
 
 ## Install
 
-You need [hmz](https://github.com/humanfia/humanize). Once the flow is listed in the official
-flowverse, open `/flow` in hmz, go to **Flowverses → official → zevorn/wordbeat** and
-**Install** it. To run a tagged release without installing it, or a checkout by its path:
+### 1. Install hmz
+
+wordbeat runs on [hmz](https://github.com/humanfia/humanize), the command of Humanize, on macOS,
+Linux, and Windows through WSL 2 (`wsl --install` first, then work in the WSL terminal). hmz
+needs Python 3.12 or newer, which [uv](https://docs.astral.sh/uv/) fetches for you:
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh   # uv, if you have none yet
+uv tool install hmz                               # or: pipx install hmz
+hmz --version
+```
+
+`hmz update` moves it to the newest release later. On macOS and Windows, Humanize Desktop
+installs `hmz` for you instead: download it from the
+[latest release](https://github.com/humanfia/humanize/releases/latest) and follow
+[Installation](https://docs.humanfia.ai/humanize/user/installation).
+
+### 2. Sign in to the agents' CLIs
+
+hmz drives coding agent CLIs you install and sign in to yourself. wordbeat's two agents must be
+able to ask their user mid-turn, so give them Claude Code, Codex, Kimi Code, pi or Oh My Pi;
+these need Node.js and npm:
+
+```sh
+npm i -g @anthropic-ai/claude-code && claude auth login
+npm i -g @openai/codex && codex login            # no browser here? codex login --device-auth
+```
+
+Run `hmz` in a terminal and open `/flow` to see which models each signed-in CLI offers.
+
+### 3. Install wordbeat
+
+Once the flow is listed in the official flowverse, open `/flow` in hmz, go to
+**Flowverses → official → zevorn/wordbeat** and **Install** it. To run a tagged release without
+installing it, or a checkout by its path:
 
 ```sh
 hmz exec -f 'git+https://github.com/zevorn/wordbeat-flow@v0.1.0#wordbeat' ...
 hmz exec -f ./wordbeat-flow/wordbeat ...
 ```
 
-### Requirements
+### 4. Install what the flow runs
 
 The flow depends on no platform: the speech models run on MLX on Apple silicon and on PyTorch
 (CUDA, Apple's MPS or the CPU) everywhere else, Remotion's renderer is a param, and every other
@@ -70,12 +106,13 @@ tool is cross-platform. The machine needs:
 - **A Python 3.12** with the toolkit's packages, named by the `python` param:
 
   ```sh
-  cd wordbeat/toolkit   # inside the installed flow
+  uv venv --python 3.12 ~/.wordbeat-env   # then pass -p python=~/.wordbeat-env/bin/python
+  cd wordbeat/toolkit                     # inside the installed flow
   # Apple silicon, with MLX:
-  uv pip install --python /path/to/python -r requirements.txt -r requirements-mlx.txt
+  uv pip install --python ~/.wordbeat-env/bin/python -r requirements.txt -r requirements-mlx.txt
   # anywhere else, with PyTorch on CUDA, MPS or the CPU:
-  uv pip install --python /path/to/python -r requirements.txt -r requirements-torch.txt \
-      --override overrides-torch.txt
+  uv pip install --python ~/.wordbeat-env/bin/python -r requirements.txt \
+      -r requirements-torch.txt --override overrides-torch.txt
   ```
 
   The models download on first use, a few GB in all: Qwen3-TTS 1.7B Base,
@@ -86,10 +123,8 @@ tool is cross-platform. The machine needs:
   (`acestep-api`, port 8001 by default).
 - **For master=hdr**, zsh, `dovi_tool` and `MP4Box` (GPAC), and an ffmpeg with libx265.
 
-The run checks all of this before the first turn and names whatever is missing.
-
-The agents' CLIs must be able to ask their user mid-turn: Claude Code, Codex, Kimi Code, pi or
-Oh My Pi. Any other is refused before the first turn.
+The run checks all of this before the first turn and names whatever is missing, and refuses an
+agent CLI that cannot ask its user mid-turn.
 
 ## Usage
 
