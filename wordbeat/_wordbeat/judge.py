@@ -7,6 +7,10 @@ LUFS_RANGE = (-16.5, -12.5)
 TRUE_PEAK_MAX = -1.0
 MUSIC_PEAK_MAX = 0.0
 VOICE_MATCH = 0.9
+# The share of the frame above the captions the picture uses, median over the film. Finished films
+# the person approved measured 0.12 to 0.47; a sample the person found thin and empty, 0.08.
+FILL_MIN = 0.10
+LULL_NOTE = 3.0
 SPEED = {"zh": (2.5, 8.5), "en": (2.0, 3.9)}
 
 
@@ -56,6 +60,22 @@ def picture(report: dict, *, min_rate: float, total: float | None = None) -> Ver
         v.failures.append(f"the picture stands still for {report['longest_static']:.1f} s (at most {STATIC_LIMIT:.0f})")
     if total is not None and abs(report["duration"] - total) > LENGTH_SLACK:
         v.failures.append(f"the video is {report['duration']:.2f} s, the timeline {total:.2f} s")
+    return v
+
+
+def fill(report: dict) -> Verdict:
+    """picture_check.py's report: whether the picture uses the frame, and where it goes quiet."""
+    v = Verdict()
+    line = f"the picture fills {report['fill_median']:.0%} of the frame (median), {report['fill_p10']:.0%} at its emptiest"
+    if report["fill_median"] < FILL_MIN:
+        v.failures.append(f"{line}; at least {FILL_MIN:.0%} is needed: lay scenes out over the whole frame, bigger")
+    else:
+        v.notes.append(line)
+    if report["longest_lull"] > LULL_NOTE:
+        v.notes.append(
+            f"to judge: almost nothing moves for {report['longest_lull']:.1f} s from {report['lull_at']:.1f} s; "
+            "keep something alive between keywords"
+        )
     return v
 
 

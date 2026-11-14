@@ -59,9 +59,10 @@ of information on screen. Keep the narration's <Audio>, the captions, the Main c
 After your turn the flow renders the first {sample:g} seconds at half size, measures them with \
 kazi_check.py and tiles the frames around every keyword into contact sheets. The sample must \
 pass `npx tsc --noEmit`, `npm run layout` if package.json defines it, hit at least {rate:.0%} \
-of its keywords more often than chance, and have no black frame, no one-frame flash and no \
-{static:g} seconds without motion. Look at the contact sheets yourself: elements overlapping, \
-text covered or cut off at the frame's edge, and a picture that reads like a slide deck fail \
+of its keywords more often than chance, have no black frame, no one-frame flash and no \
+{static:g} seconds without motion, and fill at least 10% of the frame above the captions \
+(picture_check.py): lay scenes out over the whole frame, big and readable on a phone. Look at \
+the contact sheets yourself: elements overlapping, text covered or cut off at the frame's edge, and a picture that reads like a slide deck fail \
 the stage even when the numbers pass.""",
     "film": """## Stage: film
 

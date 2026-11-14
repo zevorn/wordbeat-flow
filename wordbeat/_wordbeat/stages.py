@@ -212,6 +212,13 @@ class Picture(Stage):
         report = await p.read_json(f"{REPORTS}/{name}.json")
         v = judge.picture(report, min_rate=p.config.min_kazi_rate, total=length)
         v.notes.append(f"details: {REPORTS}/{name}.json")
+        code, said = await p.tool("picture_check.py", q(video), "--json", f"{REPORTS}/{name}_fill.json", heavy=True)
+        if code != 0:
+            v.failures.append(f"picture_check.py failed: {said}")
+        else:
+            filled = judge.fill(await p.read_json(f"{REPORTS}/{name}_fill.json"))
+            v.failures += filled.failures
+            v.notes += filled.notes
         code, said = await p.tool("keysheet.py", q(video), "timeline.json", f"{REVIEW}/{name}_keys", heavy=True)
         if code != 0:
             v.notes.append(f"keysheet.py failed: {said}")
