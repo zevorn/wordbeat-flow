@@ -128,7 +128,7 @@ the `wordbeat` skill.
 | --- | --- | --- | --- |
 | script | write `script.txt` | `lint_script.py` | you read the script |
 | voice | fix readings in `script.txt` | `voice.py`, `tempo.py`, `pace.py`, `timeline.py`, `polyphone.py` | you hear the narration |
-| sample | build the opening in `film/` | `tsc`, `npm run layout`, a half-size render, `kazi_check.py`, contact sheets | you watch the sample at full size |
+| sample | build the opening in `film/` | `tsc`, `npm run layout`, a half-size render, `kazi_check.py`, `picture_check.py`, contact sheets | you watch the sample at full size |
 | film | build the rest | the same over the whole film, and its length | |
 | music | write `audio/music_brief.json` | `ace_music.py`, `music_check.py` | |
 | finish | fix what the checks find, write `out/publish.md` | cues, the full render, `mix.py`, `kazi_check.py`, `caption_check.py`, the cover | you watch the film |
@@ -149,6 +149,8 @@ After `max_turns` turns without agreement the stage goes to you.
 - **keep** makes your notes a standing rule: every later session starts with them.
 - **An agent's question** mid-turn comes to you in hmz, and your answer goes back into that turn.
 - **Steering**: whatever you type while an agent works goes into its turn, as anywhere in hmz.
+- **direction.md**: write what you want in `direction.md` in the project, at any time and in any
+  language. Every turn's prompt carries it, ahead of the agents' own taste, gate or no gate.
 
 ### Params
 
