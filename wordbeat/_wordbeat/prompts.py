@@ -132,6 +132,14 @@ follow them exactly, and keep every edit they made by hand.
 
 """
 
+DIRECTION = """## The person's direction (direction.md in the project)
+
+The person writes here whenever they like, gate or no gate; it may be in Chinese. It outranks your \
+own taste and the handoff: follow every point, in this stage and every later one, and rework \
+earlier work it names.
+
+"""
+
 NOBODY_HERE = "Nobody is here to answer. Decide yourself, and give your reason in the handoff."
 
 RULES_HEAD = "Standing rules the person set earlier in this run. Follow every one:\n"
@@ -177,6 +185,7 @@ def turn(
     passed: bool,
     summary: str,
     images: list[str],
+    direction: str = "",
 ) -> str:
     width, height = size(config)
     parts = [
@@ -184,6 +193,8 @@ def turn(
                      minutes=config.minutes, width=width, height=height, toolkit=TOOLKIT, python=config.python),
         stage_brief(stage, config, total),
     ]
+    if direction:
+        parts.append(DIRECTION + direction)
     if human:
         parts.append("## The person's notes at this stage's gate\n\n" + HUMAN_SAID + human)
     if last:

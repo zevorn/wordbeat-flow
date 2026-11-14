@@ -30,6 +30,7 @@ RETRY_FIRST, RETRY_MOST = 30, 600
 # A CLI missing from PATH is usually one updating itself, which takes seconds; one truly not
 # installed stays missing, so it is tried again only this many times.
 MISSING_TRIES = 2
+DIRECTION_FILE = "direction.md"
 # Per-stage keys a stage clears when it ends; its kept session and author stay for a return to it.
 PASSING = ("claim", "turns", "ready", "human", "inject", "last")
 
@@ -128,7 +129,14 @@ class Engine:
             passed=report.passed,
             summary=report.summary,
             images=report.images,
+            direction=await self.direction(),
         )
+
+    async def direction(self) -> str:
+        """direction.md in the project: what the person wants, written at any time, read every turn."""
+        if not await self.project.exists(DIRECTION_FILE):
+            return ""
+        return (await self.project.read_text(DIRECTION_FILE)).strip()
 
     async def attempt(self, idx: int, session: Any, prompt: str) -> Turn:
         """One agent's turn, tried again after a wait when its CLI fails it: a provider that drops
