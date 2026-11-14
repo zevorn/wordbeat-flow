@@ -1,7 +1,24 @@
-# wordbeat _(wordbeat-flow)_
+<div align="center">
 
-A humanize (hmz) flow for word-synced videos: every visual hit lands on a keyword of the
-voice-over, measured frame by frame before delivery.
+# wordbeat
+
+**Word-synced explainer videos, made by two agents and measured frame by frame.**
+
+A [humanize](https://github.com/humanfia/humanize) (`hmz`) flow: every visual hit lands on a
+keyword of the voice-over, and the film is measured before it reaches you.
+
+[![CI](https://github.com/zevorn/wordbeat-flow/actions/workflows/ci.yml/badge.svg)](https://github.com/zevorn/wordbeat-flow/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![hmz flow](https://img.shields.io/badge/hmz-flow-ff7a1a.svg)](https://github.com/humanfia/humanize)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776ab.svg)](https://www.python.org)
+[![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20WSL-555.svg)](#4-install-what-the-flow-runs)
+
+[Quick start](#quick-start) · [Install](#install) · [Usage](#usage) ·
+[Stages](#stages-and-gates) · [Params](#params)
+
+</div>
+
+---
 
 A beat-synced video lands its cuts on the drum; a wordbeat video lands its motions on the
 narration's keywords. The voice comes first: every character is timed, and the picture looks up
@@ -9,8 +26,38 @@ each motion's frame from that table. Two coding agents take turns on every stage
 the other's work in a fresh session, while the flow runs the heavy jobs and the measurements
 itself. You decide at four gates: the script, the voice, a sample, and the finished film.
 
+- 🎯 **Measured, not claimed.** Every keyword's hit, the frame fill, black frames, flashes,
+  loudness and caption timing are measured; a stage ends only when they pass.
+- 🤝 **Two agents, one checks the other.** Each turn starts by reviewing the other agent's last
+  change in a fresh session; a stage ends when one says done and the other agrees without
+  touching a file.
+- 🧭 **You stay in charge.** Four gates, a `direction.md` read every turn, and agents that ask you
+  mid-turn when a choice is yours.
+- 💻 **Runs anywhere.** MLX on Apple silicon, PyTorch on CUDA, MPS or the CPU elsewhere; Remotion
+  for the picture.
+- ♻️ **Survives a long run.** Resumable from any stop, heavy jobs cached by their inputs, failed
+  turns tried again after a wait.
+
+## Quick start
+
+```sh
+uv tool install hmz
+hmz exec -f zevorn/wordbeat \
+    -a first_chaser=claude/claude-opus-5-5:high -a second_chaser=codex/gpt-5.6-sol:high \
+    -p budget.duration=6h,voice_ref=voice/ref.wav,python=~/.wordbeat-env/bin/python,gates=auto \
+    "Explain the eight planets to curious teenagers, in Chinese, two minutes."
+```
+
+Each step, from hmz to the Python the toolkit runs with, is under [Install](#install).
+
+> [!WARNING]
+> The agents work without asking for approval, as every hmz flow's do. Read
+> [Security](https://docs.humanfia.ai/humanize/user/security) before you run it, and run it in a
+> project directory you can afford to have changed.
+
 ## Table of Contents
 
+- [Quick start](#quick-start)
 - [Background](#background)
 - [Install](#install)
   - [1. Install hmz](#1-install-hmz)
@@ -189,6 +236,11 @@ After `max_turns` turns without agreement the stage goes to you.
 
 ### Params
 
+Give them with `-p key=value,...`, or fill them in the form hmz shows at the prompt.
+
+<details>
+<summary><b>All 26 params</b></summary>
+
 | Param | Default | What it does |
 | --- | --- | --- |
 | `project` | `.` | the project directory, relative to where the run starts |
@@ -217,6 +269,8 @@ After `max_turns` turns without agreement the stage goes to you.
 | `ace_model` | | an ACE-Step DiT model; empty for the server's |
 | `gates` | `ask` | `auto` lets the agents decide every gate |
 | `preview_open` | `true` | open the media before a gate asks |
+
+</details>
 
 ### What it writes
 
