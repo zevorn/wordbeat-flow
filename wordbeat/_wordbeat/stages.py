@@ -166,11 +166,18 @@ class Picture(Stage):
                 raise RuntimeError(f"npm ci failed in film/: {said}")
 
     async def sync(self, p: Project) -> None:
-        """The film's copies of the timeline, the narration and the frame size the params ask for."""
+        """The film's copies of the timeline and the narration, where the narration is audible, and the
+        frame size and language the params ask for."""
         width, height = (1920, 1080) if p.config.orientation == "landscape" else (1080, 1920)
-        frame = q(json.dumps({"width": width, "height": height}))
-        await p.sh("mkdir -p film/src/data film/public && cp timeline.json film/src/data/timeline.json && "
-                   f"cp vo_paced/narration.wav film/public/narration.wav && printf '%s\\n' {frame} > film/src/data/frame.json")
+        frame = q(json.dumps({"width": width, "height": height, "lang": p.config.lang}))
+        code, said = await p.sh(
+            "mkdir -p film/src/data film/public && cp timeline.json film/src/data/timeline.json && "
+            "cp vo_paced/narration.wav film/public/narration.wav && "
+            f"printf '%s\\n' {frame} > film/src/data/frame.json && "
+            + p.python("voice_loud.py", "vo_paced/narration.wav", "film/src/data/voice_loud.json")
+        )
+        if code != 0:
+            raise RuntimeError(f"syncing film/ with the narration failed: {said}")
 
     async def code(self, p: Project) -> Report | None:
         code, said = await p.sh("cd film && npx tsc --noEmit")
