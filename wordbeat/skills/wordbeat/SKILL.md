@@ -163,9 +163,29 @@ burst of colored fragments beside it. Never flash, shake, punch or zoom the whol
 camera orbits and push-ins dropped a film's hit rate to 33%.
 
 **Layout.** At most 4 new pieces of information on screen at once; only keywords as on-screen
-text, sentences belong to captions. Keep one thread through the film (a character, a color, a
-shape). Move the camera with ease-in-out curves over 0.6-1.2 s. Transition through something on
-screen rather than a generic fade.
+text, sentences belong to captions. Move the camera with ease-in-out curves over 0.6-1.2 s.
+
+What a person watching a sample found wanting, and what picture_check.py now measures:
+
+- **Fill the frame.** Lay every scene out over the whole frame, centered above the caption band,
+  the main element at least half the frame wide. A scene in a thin band with most of the frame
+  empty reads thin: the picture must cover at least 10% of the frame above the captions (median
+  over the film); films people liked cover 12-47%.
+- **Readable on a phone.** On-screen words at least 48 px, keyword labels at least 64 px, titles
+  at least 96 px, at 1920x1080.
+- **Nothing dead between keywords.** Keep something alive at low intensity: a playhead moving
+  with the narration, slow camera drift, a breathing glow. Save the big motion for the keyword.
+  picture_check.py points at every stretch of more than 3 s where almost nothing moves.
+- **One thread through the film.** One element (a block, a character, the waveform) carries
+  through every scene, and each scene hands over to the next through it: the last element of one
+  scene becomes the first of the next. No hard cuts between unrelated layouts.
+- **Depth and color.** A foreground, a middle and a background layer (vignette, a faint grid in
+  perspective, a glow behind the active element), and accent colors used consistently for the
+  same things throughout.
+
+**The person's direction.** direction.md in the project holds what the person wants, written at
+any time; every turn's prompt carries it. Follow it over your own taste, and rework earlier work
+it names.
 
 Keep every position in one layout table shared by the render and a check, and add
 `"layout": "tsx scripts/layout_check.ts"` to package.json once the film has one; the flow runs
