@@ -1,0 +1,24 @@
+{
+  "name": "wordbeat-film",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A wordbeat film: every motion takes its time from the narration's timeline",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render src/index.ts Main out/video.mp4",
+    "cues": "tsx scripts/cues.ts",
+    "caps": "tsx scripts/caps.ts",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.540",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.540"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}
