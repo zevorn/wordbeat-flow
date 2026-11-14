@@ -23,10 +23,13 @@ from _wordbeat.project import Project
 from _wordbeat.stages import STAGES, Stage, master, preflight, total
 
 ROLES = ("first_chaser", "second_chaser")
-# Failures that waiting cannot mend: a CLI that is not installed, a model the account cannot run,
-# a refused credential, a session used wrongly.
-FINAL = (HarnessNotInstalled, ModelUnavailable, HarnessRefused, SessionError, UnsupportedOperation)
+# Failures that waiting cannot mend: a model the account cannot run, a refused credential, a session
+# used wrongly.
+FINAL = (ModelUnavailable, HarnessRefused, SessionError, UnsupportedOperation)
 RETRY_FIRST, RETRY_MOST = 30, 600
+# A CLI missing from PATH is usually one updating itself, which takes seconds; one truly not
+# installed stays missing, so it is tried again only this many times.
+MISSING_TRIES = 2
 # Per-stage keys a stage clears when it ends; its kept session and author stay for a return to it.
 PASSING = ("claim", "turns", "ready", "human", "inject", "last")
 
@@ -137,6 +140,8 @@ class Engine:
                 raise
             except HarnessError as error:
                 if tried == self.config.harness_retries:
+                    raise
+                if isinstance(error, HarnessNotInstalled) and tried >= MISSING_TRIES:
                     raise
                 wait = min(RETRY_FIRST * 2**tried, RETRY_MOST)
                 print(f"wordbeat · {ROLES[idx]}'s turn failed ({error}); trying again in {wait} s", flush=True)
