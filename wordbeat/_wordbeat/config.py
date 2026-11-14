@@ -1,7 +1,8 @@
+import os
 from typing import Literal
 
 from hmz.flows import FlowParams
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, field_validator, model_validator
 
 FILM = {"section": "film  ·  what the video is"}
 TOOLS = {"section": "tools  ·  where the toolkit runs"}
@@ -121,6 +122,12 @@ class Config(FlowParams):
         default=True, description="open the audio, video and images to judge before each gate asks",
         json_schema_extra=PEOPLE,
     )
+
+    @field_validator("python")
+    @classmethod
+    def _home(cls, value: str) -> str:
+        # The flow quotes the interpreter in every command line, where the shell expands no ~.
+        return os.path.expanduser(value)
 
     @model_validator(mode="after")
     def _settles(self) -> "Config":
