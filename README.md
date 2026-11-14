@@ -168,6 +168,7 @@ After `max_turns` turns without agreement the stage goes to you.
 | `gl` | `angle` | Remotion's OpenGL renderer; `swangle` without a GPU |
 | `hf_home` | | `HF_HOME` for the models |
 | `concurrency` | `4` | Remotion's render concurrency |
+| `harness_retries` | `6` | times a turn is tried again when an agent's CLI fails it, waiting 30 s and twice as long each time, at most 10 minutes |
 | `heavy_timeout` | `0` | seconds one heavy job may take; `0` for no limit |
 | `sample_seconds` | `25` | the sample's length |
 | `min_kazi_rate` | `0.9` | the share of keywords the picture must hit |
