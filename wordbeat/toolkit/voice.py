@@ -1,0 +1,137 @@
+"""逐句生成旁白：千问 Qwen3-TTS Base 克隆 ref.wav 的声音，每句生成 N 遍，用 Whisper 回听打分，留最好的一遍。
+
+用法：python voice.py <稿子.txt> <输出目录> [--takes 4] [--only 1,2,5] [--lang en]
+- --lang en：念英文稿（同一个克隆声，参考录音是中文也可以）。语音识别、语速打分都按英文来。
+- 稿子格式：一句一行；[段落名] 开新段；{念法=>字幕}；行尾 "| 0.4" 是句后停顿秒数。
+- 可以断点续跑：念法没变的句子直接跳过。所有遍都留在 takes/，方便换耳朵挑。
+"""
+import argparse, difflib, hashlib, json, re, shutil, sys, time
+from pathlib import Path
+import librosa, numpy as np, soundfile as sf
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import speech
+
+ap = argparse.ArgumentParser()
+ap.add_argument("script"); ap.add_argument("out")
+ap.add_argument("--ref", default=str(Path(__file__).with_name("ref.wav")))
+ap.add_argument("--takes", type=int, default=4)
+ap.add_argument("--only", default="")
+ap.add_argument("--backend", default="auto", choices=["auto", "mlx", "torch"], help="mlx on Apple silicon, torch anywhere")
+ap.add_argument("--model", default="", help="the TTS model; empty for the backend's Qwen3-TTS 1.7B Base")
+ap.add_argument("--asr", default="", help="the Whisper model; empty for the backend's large-v3-turbo")
+ap.add_argument("--hint", default="")
+ap.add_argument("--lang", default="zh", choices=["zh", "en"])
+a = ap.parse_args()
+BACKEND = speech.pick(a.backend)
+EN = a.lang == "en"
+if not a.hint: a.hint = "The following is an English sentence." if EN else "以下是普通话的句子。"
+
+OUT = Path(a.out); LINES = OUT/"lines"; TAKES = OUT/"takes"; WORK = OUT/".work"
+for d in (LINES, TAKES, WORK): d.mkdir(parents=True, exist_ok=True)
+REF = Path(a.ref); REF_TEXT = REF.with_suffix(".txt").read_text("utf-8").strip()
+
+
+def parse(path):
+    items, section = [], None
+    for raw in Path(path).read_text("utf-8").splitlines():
+        l = raw.strip()
+        if not l or l.startswith("#") or l.startswith("@"): continue
+        # 带【】的是等数据的占位句，不配音（timeline 里按字数估时长）
+        if "【" in l and not l.startswith("["): items.append(None); continue
+        if l.startswith("["): section = l[1:-1]; continue
+        pause = 0.4
+        if "|" in l: l, p = l.rsplit("|", 1); pause = float(p); l = l.strip()
+        # *词* 只标字幕里的关键词，念法里去掉
+        say = re.sub(r"\{([^}]*)=>[^}]*\}", r"\1", l).replace("*", "")
+        show = re.sub(r"\{[^}]*=>([^}]*)\}", r"\1", l).replace("*", "")
+        pieces = [[x or z, y or z] for x, y, z in re.findall(r"\{([^}]*)=>([^}]*)\}|([^{}]+)", l)]
+        items.append({"i": len(items)+1, "section": section, "say": say, "show": show, "pause": pause, "pieces": pieces})
+    return [x for x in items if x is not None]
+
+
+ONES = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split()
+TENS = "_ _ twenty thirty forty fifty sixty seventy eighty ninety".split()
+
+
+def spell(n):
+    """英文稿用：识别结果里的阿拉伯数字念成英文单词，再和稿子比（稿子里写的是单词）。"""
+    if n < 20: return ONES[n]
+    if n < 100: return TENS[n // 10] + ("" if n % 10 == 0 else ONES[n % 10])
+    if n < 1000: return ONES[n // 100] + "hundred" + ("and" + spell(n % 100) if n % 100 else "")
+    return str(n)
+
+
+def norm(s):
+    s = s.lower()
+    if EN: s = re.sub(r"\d+", lambda m: spell(int(m.group())), s.replace(",", ""))
+    return re.sub(r"[^\w]", "", s)
+
+
+ears = None
+
+
+def asr(p):
+    global ears
+    if ears is None: ears = speech.Ears(BACKEND, a.asr)
+    return ears.hear(p, a.lang, a.hint)
+
+
+def trim(y, sr):
+    hop = int(.01*sr)
+    db = 20*np.log10(np.array([np.sqrt(np.mean(y[i:i+hop]**2)) for i in range(0, len(y)-hop, hop)])+1e-6)
+    idx = np.where(db > max(db.max()-45, -55))[0]
+    return y[max(0, idx[0]*hop-int(.04*sr)):min(len(y), (idx[-1]+1)*hop+int(.08*sr))]
+
+
+def pitch_spread(y, sr):
+    """音高起伏（半音的标准差）。太平的那一遍听起来像念经，打分时略微偏好起伏大一点的。"""
+    f0, _, _ = librosa.pyin(y.astype(np.float32), fmin=60, fmax=420, sr=sr, frame_length=1024, hop_length=240)
+    f = f0[np.isfinite(f0)]
+    return round(float((12*np.log2(f/np.median(f))).std()), 2) if len(f) > 10 else 0.0
+
+
+items = parse(a.script)
+only = {int(x) for x in a.only.split(",") if x}
+# 按念法内容缓存：稿子里插句、删句以后，序号会变，但念过的句子不用重念
+CACHE = OUT/"cache"; CACHE.mkdir(exist_ok=True)
+key = lambda s: hashlib.sha1(s.encode("utf-8")).hexdigest()[:12]
+for m in LINES.glob("L*.json"):
+    d = json.loads(m.read_text("utf-8")); w = m.with_suffix(".wav"); c = CACHE/key(d["say"])
+    if w.exists() and not c.with_suffix(".wav").exists():
+        shutil.copy(w, c.with_suffix(".wav")); c.with_suffix(".json").write_text(json.dumps(d, ensure_ascii=False), "utf-8")
+model = None; t0 = time.time()
+for it in items:
+    if only and it["i"] not in only: continue
+    dest = LINES/f"L{it['i']:03d}.wav"; meta = LINES/f"L{it['i']:03d}.json"; c = CACHE/key(it["say"])
+    if c.with_suffix(".wav").exists():
+        shutil.copy(c.with_suffix(".wav"), dest)
+        meta.write_text(json.dumps({**json.loads(c.with_suffix(".json").read_text("utf-8")), **it}, ensure_ascii=False), "utf-8"); continue
+    if model is None: model = speech.Voice(BACKEND, a.model, REF, REF_TEXT)
+    # 生成长度上限：按预计秒数 × 12 帧/秒 × 1.8 倍余量（中文约 4 字/秒，英文约 2.6 词/秒）
+    secs = len(it["say"].split())/2.6 if EN else len(it["say"])/4.0
+    best, budget = None, int(secs*12*1.8)+40
+    for t in range(a.takes):
+        y, sr = model.say(it["say"], a.lang, budget, WORK/f"L{it['i']:03d}_t{t}_gen")
+        p = WORK/f"L{it['i']:03d}_t{t}.wav"
+        sf.write(p, y, sr, subtype="FLOAT"); y = trim(y, sr)
+        sf.write(TAKES/f"L{it['i']:03d}_t{t}.wav", y, sr, subtype="PCM_16")
+        heard = asr(p)
+        ratio = difflib.SequenceMatcher(None, norm(it["say"]), norm(heard), autojunk=False).ratio()
+        s = pitch_spread(y, sr); dur = len(y)/sr
+        # 语速：中文按字/秒，英文按词/秒
+        cps = (len(it["say"].split()) if EN else len(norm(it["say"])))/max(dur, .1)
+        lo, hi = (2.0, 3.9) if EN else (2.5, 8.5)
+        # 念对字是第一位的：吻合度差 0.05 就压过起伏的差别（做片时遇到过，0.94 的那遍起伏大，被挑中了，结果"不装"念得像"不中"）
+        # 语速异常的扣分；吻合度差不多时，才看起伏
+        score = s + (-6 if ratio < .9 else 0) + (-4 if cps < lo or cps > hi else 0) + 25*ratio
+        cand = {"score": score, "y": y, "sr": sr, "take": t, "ratio": round(ratio, 3), "st_std": s,
+                "heard": heard, "dur": round(dur, 3), "cps": round(cps, 2)}
+        if best is None or score > best["score"]: best = cand
+    sf.write(dest, best["y"], best["sr"], subtype="PCM_16")
+    meta.write_text(json.dumps({**it, **{k: best[k] for k in ("take", "ratio", "st_std", "heard", "dur", "cps")}},
+                               ensure_ascii=False), "utf-8")
+    shutil.copy(dest, c.with_suffix(".wav")); shutil.copy(meta, c.with_suffix(".json"))
+    print(it["i"], it["section"], best["dur"], "s", best["cps"], "cps ratio", best["ratio"], "|", best["heard"][:60],
+          f"[{round(time.time()-t0)}s]", flush=True)
+print("VOICE LINES DONE", flush=True)

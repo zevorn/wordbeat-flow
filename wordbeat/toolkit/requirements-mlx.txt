@@ -1,0 +1,3 @@
+# Voice, read-back and alignment with MLX, on Apple silicon Macs.
+mlx-audio>=0.6.4
+mlx-whisper>=0.4.3

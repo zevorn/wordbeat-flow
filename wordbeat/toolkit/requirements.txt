@@ -1,0 +1,11 @@
+# The Python the toolkit runs with (the flow's `python` param).
+#   Apple silicon:  pip install -r requirements.txt -r requirements-mlx.txt
+#   anywhere else:  pip install -r requirements.txt -r requirements-torch.txt
+numpy>=2.0
+scipy>=1.11
+soundfile>=0.12
+librosa>=0.10
+pyloudnorm>=0.1.1
+pypinyin>=0.55
+Pillow>=10.1
+requests>=2.31
