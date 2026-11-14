@@ -54,6 +54,19 @@ def test_numbers_whisper_writes_in_digits_are_judged_not_failed() -> None:
     assert "line 1:" not in judged
 
 
+def test_a_film_people_liked_fills_enough_of_the_frame() -> None:
+    verdict = judge.fill(load("fill_flame_chase_final.json"))
+    assert verdict.passed, verdict.text()
+    # Its quietest stretch, 3.7 s, is pointed out for judging but does not fail it.
+    assert any("3.7 s" in n for n in verdict.notes)
+
+
+def test_a_thin_sample_fails_on_fill() -> None:
+    verdict = judge.fill(load("fill_thin_sample.json"))
+    assert not verdict.passed
+    assert "8%" in verdict.failures[0]
+
+
 def test_a_line_without_a_take_fails() -> None:
     verdict = judge.voice([{"i": 7, "say": "x"}], "zh")
     assert verdict.failures == ["line 7 has no voiced take"]
