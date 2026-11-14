@@ -1,3 +1,4 @@
+import asyncio
 import json
 import math
 
@@ -9,6 +10,7 @@ from _wordbeat.project import STARTER, TOOLKIT, Project, q
 FPS = 60
 REPORTS = ".wordbeat/reports"
 REVIEW = ".wordbeat/review"
+BROWSER_TRIES = 5
 FILM_INPUTS = ["film/src", "film/scripts", "film/public", "film/package.json", "timeline.json"]
 
 
@@ -164,6 +166,16 @@ class Picture(Stage):
             code, said = await p.sh("cd film && npm ci --no-audit --no-fund", heavy=True)
             if code != 0:
                 raise RuntimeError(f"npm ci failed in film/: {said}")
+        # Remotion renders with its own headless Chrome, downloaded on first use; fetch it here, where a
+        # dropped connection can be tried again, rather than inside the first render.
+        for tried in range(BROWSER_TRIES):
+            code, said = await p.sh("cd film && npx remotion browser ensure", heavy=True)
+            if code == 0:
+                break
+            print(f"wordbeat · fetching Remotion's browser failed, try {tried + 1} of {BROWSER_TRIES}", flush=True)
+            await asyncio.sleep(30)
+        else:
+            raise RuntimeError(f"Remotion's headless browser could not be fetched: {said}")
 
     async def sync(self, p: Project) -> None:
         """The film's copies of the timeline and the narration, where the narration is audible, and the
