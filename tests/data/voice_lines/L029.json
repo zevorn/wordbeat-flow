@@ -1,0 +1,1 @@
+{"i": 29, "section": "统一", "say": "功能的开关，放在 K config 里。", "show": "功能的开关，放在 Kconfig 里。", "pause": 0.45, "pieces": [["功能的开关，放在 ", "功能的开关，放在 "], ["K config", "Kconfig"], [" 里。", " 里。"]], "take": 2, "ratio": 1.0, "st_std": 3.77, "heard": "功能的开关放在KConfig里。", "dur": 3.04, "cps": 4.93}

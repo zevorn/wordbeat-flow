@@ -1,0 +1,1 @@
+{"i": 48, "section": "验证", "say": "第一层是 native sim，让程序在电脑里运行。", "show": "第一层是 native_sim，让程序在电脑里运行。", "pause": 0.45, "pieces": [["第一层是 ", "第一层是 "], ["native sim", "native_sim"], ["，让程序在*电脑*里运行。", "，让程序在*电脑*里运行。"]], "take": 3, "ratio": 1.0, "st_std": 2.64, "heard": "第一层是NativeSIM,让程序在电脑里运行。", "dur": 4.0, "cps": 5.5}

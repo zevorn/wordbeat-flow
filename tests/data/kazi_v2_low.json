@@ -1,0 +1,236 @@
+{
+ "video": "/Users/zevorn/video/projects/humanize2-flame-chase/out/video_v2.mp4",
+ "fps": 60.0,
+ "frames": 8873,
+ "duration": 147.904,
+ "size": "1920x1080",
+ "audio_streams": 1,
+ "keywords": 26,
+ "hits": 14,
+ "kazi_rate": 0.538,
+ "chance": 0.202,
+ "lift": 0.337,
+ "window": [
+  -0.35,
+  0.15
+ ],
+ "detail": [
+  {
+   "word": "叠加",
+   "t": 9.27,
+   "line": 2,
+   "hit": false,
+   "near": 0.06,
+   "before": 0.19
+  },
+  {
+   "word": "轮流",
+   "t": 20.03,
+   "line": 5,
+   "hit": false,
+   "near": 0.24,
+   "before": 1.97
+  },
+  {
+   "word": "选用",
+   "t": 21.66,
+   "line": 6,
+   "hit": false,
+   "near": 0.25,
+   "before": 0.13
+  },
+  {
+   "word": "犯错",
+   "t": 26.78,
+   "line": 7,
+   "hit": false,
+   "near": 0.02,
+   "before": 0.05
+  },
+  {
+   "word": "开启",
+   "t": 30.28,
+   "line": 8,
+   "hit": false,
+   "near": 0.25,
+   "before": 0.11
+  },
+  {
+   "word": "带进来",
+   "t": 34.67,
+   "line": 9,
+   "hit": false,
+   "near": 0.04,
+   "before": 0.21
+  },
+  {
+   "word": "交接",
+   "t": 38.37,
+   "line": 10,
+   "hit": true,
+   "near": 0.31,
+   "before": 0.06
+  },
+  {
+   "word": "接手",
+   "t": 40.66,
+   "line": 11,
+   "hit": true,
+   "near": 0.27,
+   "before": 0.08
+  },
+  {
+   "word": "选出",
+   "t": 55.19,
+   "line": 15,
+   "hit": true,
+   "near": 0.31,
+   "before": 0.08
+  },
+  {
+   "word": "创建",
+   "t": 58.42,
+   "line": 16,
+   "hit": true,
+   "near": 0.31,
+   "before": 0.08
+  },
+  {
+   "word": "运行",
+   "t": 62.24,
+   "line": 17,
+   "hit": true,
+   "near": 0.38,
+   "before": 0.02
+  },
+  {
+   "word": "交给",
+   "t": 65.09,
+   "line": 18,
+   "hit": true,
+   "near": 0.35,
+   "before": 0.05
+  },
+  {
+   "word": "读取",
+   "t": 71.3,
+   "line": 20,
+   "hit": true,
+   "near": 1.25,
+   "before": 0.02
+  },
+  {
+   "word": "加上",
+   "t": 76.16,
+   "line": 21,
+   "hit": true,
+   "near": 0.76,
+   "before": 0.25
+  },
+  {
+   "word": "加入",
+   "t": 79.44,
+   "line": 22,
+   "hit": false,
+   "near": 0.45,
+   "before": 0.58
+  },
+  {
+   "word": "坏掉",
+   "t": 83.59,
+   "line": 23,
+   "hit": false,
+   "near": 0.62,
+   "before": 0.53
+  },
+  {
+   "word": "修好",
+   "t": 86.72,
+   "line": 24,
+   "hit": true,
+   "near": 1.1,
+   "before": 0.08
+  },
+  {
+   "word": "补上",
+   "t": 90.51,
+   "line": 25,
+   "hit": false,
+   "near": 0.5,
+   "before": 0.43
+  },
+  {
+   "word": "回到",
+   "t": 95.74,
+   "line": 26,
+   "hit": true,
+   "near": 0.49,
+   "before": 0.05
+  },
+  {
+   "word": "花完",
+   "t": 101.5,
+   "line": 28,
+   "hit": true,
+   "near": 3.37,
+   "before": 1.69
+  },
+  {
+   "word": "失败",
+   "t": 108.08,
+   "line": 30,
+   "hit": true,
+   "near": 0.3,
+   "before": 0.08
+  },
+  {
+   "word": "记住",
+   "t": 112.32,
+   "line": 31,
+   "hit": false,
+   "near": 0.38,
+   "before": 3.24
+  },
+  {
+   "word": "接着",
+   "t": 117.4,
+   "line": 32,
+   "hit": false,
+   "near": 0.14,
+   "before": 0.11
+  },
+  {
+   "word": "启程",
+   "t": 126.35,
+   "line": 34,
+   "hit": true,
+   "near": 0.49,
+   "before": 0.17
+  },
+  {
+   "word": "出发",
+   "t": 131.03,
+   "line": 35,
+   "hit": false,
+   "near": 0.28,
+   "before": 0.55
+  },
+  {
+   "word": "启动",
+   "t": 138.71,
+   "line": 37,
+   "hit": true,
+   "near": 0.18,
+   "before": 0.03
+  }
+ ],
+ "black_frames": 0,
+ "flash_frames": [],
+ "hard_cuts": 0,
+ "longest_static": 3.57,
+ "lufs": -18.8,
+ "true_peak": -4.6,
+ "problems": [
+  "响度 -18.8 LUFS，网络视频一般在 -14 左右"
+ ]
+}
